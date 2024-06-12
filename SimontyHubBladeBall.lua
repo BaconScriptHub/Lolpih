@@ -78,7 +78,7 @@ end
 
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
 
-local Window = OrionLib:MakeWindow({Name = "BACON HUB V3 | BaconSimonGaming", HidePremium = false, IntroText = "MADE BY Bacon", SaveConfig = true, ConfigFolder = "Blade Ball"})
+local Window = OrionLib:MakeWindow({Name = "Retired Hub Premium | Blade Ball", HidePremium = false, IntroText = "MADE BY Bacon", SaveConfig = true, ConfigFolder = "Blade Ball"})
 
 function initializate(dataFolder_name: string)
 
