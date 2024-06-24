@@ -6,6 +6,8 @@ local RunService = game:GetService('RunService')
 
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 
+local TweenService = game:GetService('TweenService')
+
 local Nurysium_Util = loadstring(game:HttpGet('https://raw.githubusercontent.com/flezzpe/Nurysium/main/nurysium_helper.lua'))()
 
 local local_player = Players.LocalPlayer
@@ -32,49 +34,21 @@ getgenv().trail_Enabled = false
 
 getgenv().self_effect_Enabled = false
 
+getgenv().kill_effect_Enabled = false
+
+getgenv().shaders_effect_Enabled = false
+
+getgenv().ai_Enabled = false
+
+getgenv().spectate_Enabled = false
+
 local Services = {
 
-    game:GetService('AdService'),
+	game:GetService('AdService'),
 
-    game:GetService('SocialService')
+	game:GetService('SocialService')
 
 }
-
-function SwordCrateManual()
-
-game:GetService("ReplicatedStorage").Remote.RemoteFunction:InvokeServer("PromptPurchaseCrate", workspace.Spawn.Crates.NormalSwordCrate)
-
-end
-
-function ExplosionCrateManual()
-
-game:GetService("ReplicatedStorage").Remote.RemoteFunction:InvokeServer("PromptPurchaseCrate", workspace.Spawn.Crates.NormalExplosionCrate)
-
-end
-
-function SwordCrateAuto()
-
-while _G.AutoSword do
-
-game:GetService("ReplicatedStorage").Remote.RemoteFunction:InvokeServer("PromptPurchaseCrate", workspace.Spawn.Crates.NormalSwordCrate)
-
-wait(1)
-
-end
-
-end
-
-function ExplosionCrateAuto()
-
-while _G.AutoBoom do
-
-game:GetService("ReplicatedStorage").Remote.RemoteFunction:InvokeServer("PromptPurchaseCrate", workspace.Spawn.Crates.NormalExplosionCrate)
-
-wait(1)
-
-end
-
-end
 
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
@@ -92,147 +66,92 @@ local Window = Fluent:CreateWindow({
 --Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
 local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "" }),
+    Credit = Window:AddTab({ Title = "Credit", Icon = "settings" })
 }
 
 function initializate(dataFolder_name: string)
 
-    local nurysium_Data = Instance.new('Folder', game:GetService('CoreGui'))
+	local nurysium_Data = Instance.new('Folder', game:GetService('CoreGui'))
 
-    nurysium_Data.Name = dataFolder_name
+	nurysium_Data.Name = dataFolder_name
 
-    hit_Sound = Instance.new('Sound', nurysium_Data)
+	hit_Sound = Instance.new('Sound', nurysium_Data)
 
-    hit_Sound.SoundId = 'rbxassetid://8632670510'
+	hit_Sound.SoundId = 'rbxassetid://6607204501'
 
-    hit_Sound.Volume = 5
+	hit_Sound.Volume = 6
 
 end
 
 local function get_closest_entity(Object: Part)
 
-    task.spawn(function()
+	task.spawn(function()
 
-        local closest
+		local closest
 
-        local max_distance = math.huge
+		local max_distance = math.huge
 
-        for index, entity in workspace.Alive:GetChildren() do
+		for index, entity in workspace.Alive:GetChildren() do
 
-            if entity.Name ~= Players.LocalPlayer.Name then
+			if entity.Name ~= Players.LocalPlayer.Name then
 
-                local distance = (Object.Position - entity.HumanoidRootPart.Position).Magnitude
+				local distance = (Object.Position - entity.HumanoidRootPart.Position).Magnitude
 
-                if distance < max_distance then
+				if distance < max_distance then
 
-                    closest_Entity = entity
+					closest_Entity = entity
 
-                    max_distance = distance
+					max_distance = distance
 
-                end
+				end
 
-            end
+			end
 
-        end
+		end
 
-        return closest_Entity
+		return closest_Entity
 
-    end)
+	end)
+
+end
+
+local function get_center()
+
+	for _, object in workspace.Map:GetDescendants() do
+
+		if object.Name == 'BALLSPAWN' then
+
+			return object
+
+		end
+
+	end
 
 end
 
 function resolve_parry_Remote()
 
-    for _, value in Services do
+	for _, value in Services do
 
-        local temp_remote = value:FindFirstChildOfClass('RemoteEvent')
+		local temp_remote = value:FindFirstChildOfClass('RemoteEvent')
 
-        if not temp_remote then
+		if not temp_remote then
 
-            continue
+			continue
 
-        end
+		end
 
-        if not temp_remote.Name:find('\n') then
+		if not temp_remote.Name:find('\n') then
 
-            continue
+			continue
 
-        end
+		end
 
-        parry_remote = temp_remote
+		parry_remote = temp_remote
 
-    end
+	end
 
 end
-
-local aura_table = {
-
-    canParry = true,
-
-    is_Spamming = false,
-
-    parry_Range = 0,
-
-    spam_Range = 0,  
-
-    hit_Count = 0,
-
-    hit_Time = tick(),
-
-    ball_Warping = tick(),
-
-    is_ball_Warping = false
-
-}
-
-ReplicatedStorage.Remotes.ParrySuccess.OnClientEvent:Connect(function()
-
-    if getgenv().hit_sound_Enabled then
-
-        hit_Sound:Play()
-
-    end
-
-    if getgenv().hit_effect_Enabled then
-
-        local hit_effect = game:GetObjects("rbxassetid://17407244385")[1]
-
-        hit_effect.Parent = Nurysium_Util.getBall()
-
-        hit_effect:Emit(3)
-
-        
-
-        task.delay(5, function()
-
-            hit_effect:Destroy()
-
-        end)
-
-    end
-
-end)
-
-ReplicatedStorage.Remotes.ParrySuccessAll.OnClientEvent:Connect(function()
-
-    aura_table.hit_Count += 1
-
-    task.delay(0.15, function()
-
-        aura_table.hit_Count -= 1
-
-    end)
-
-end)
-
-workspace:WaitForChild("Balls").ChildRemoved:Connect(function(child)
-
-    aura_table.hit_Count = 0
-
-    aura_table.is_ball_Warping = false
-
-    aura_table.is_Spamming = false
-
-end)
 
     local Toggle = Tabs.Main:AddToggle("Auto Parry", {Title = "Auto Parry", Default = false })
 
@@ -240,12 +159,23 @@ end)
     
     resolve_parry_Remote()
 
-    getgenv().aura_Enabled = toggled
-    
-        print("Toggle changed:", Options.MyToggle.Value)
+	getgenv().aura_Enabled = toggled
+
+        print("Toggle changed:", Options.Auto Parry.Value)
     end)
 
-    Options.MyToggle:SetValue(false)
+    Options.Auto Parry:SetValue(false)
+    
+    local Toggle = Tabs.Main:AddToggle("Hit sound", {Title = "Hit sound", Default = false })
+
+    Toggle:OnChanged(function(toggled)
+    
+    getgenv().hit_sound_Enabled = toggled
+    
+        print("Toggle changed:", Options.Hit sound.Value)
+    end)
+
+    Options.Hit sound:SetValue(false)
     
     local Toggle = Tabs.Main:AddToggle("Hit effect", {Title = "Hit effect", Default = false })
 
@@ -253,97 +183,23 @@ end)
     
     getgenv().hit_effect_Enabled = toggled
     
-        print("Toggle changed:", Options.MyToggle.Value)
+        print("Toggle changed:", Options.Hiteffect.Value)
     end)
 
-    Options.MyToggle:SetValue(false)
+    Options.HitEffect:SetValue(false)
     
-    local Toggle = Tabs.Main:AddToggle("Hit Sound", {Title = "Hit sound", Default = false })
-
-    Toggle:OnChanged(function(toggled)
-    
-    getgenv().hit_sound_Enabled = toggled
-    
-        print("Toggle changed:", Options.MyToggle.Value)
-    end)
-
-    Options.MyToggle:SetValue(false)
-    
-    local Toggle = Tabs.Main:AddToggle("Night Mode", {Title = "Night Mode", Default = false })
+    local Toggle = Tabs.Main:AddToggle("nightmode", {Title = "nightmode", Default = false })
 
     Toggle:OnChanged(function(toggled)
     
     getgenv().night_mode_Enabled = toggled
     
-        print("Toggle changed:", Options.MyToggle.Value)
+        print("Toggle changed:", Options.nightmode.Value)
     end)
 
-    Options.MyToggle:SetValue(false)
+    Options.nightmode:SetValue(false)
     
-    local Toggle = Tabs.Main:AddToggle("Trail", {Title = "Trail", Default = false })
-
-    Toggle:OnChanged(function(toggled)
-    
-    getgenv().trail_Enabled = toggled
-
-        print("Toggle changed:", Options.MyToggle.Value)
-    end)
-
-    Options.MyToggle:SetValue(false)
-    
-task.defer(function()
-
-    game:GetService("RunService").Heartbeat:Connect(function()
-
-        if not local_player.Character then
-
-            return
-
-        end
-
-        if getgenv().trail_Enabled then
-
-            local trail = game:GetObjects("rbxassetid://17483658369")[1]
-
-            trail.Name = 'nurysium_fx'
-
-            if local_player.Character.PrimaryPart:FindFirstChild('nurysium_fx') then
-
-                return
-
-            end
-
-            local Attachment0 = Instance.new("Attachment", local_player.Character.PrimaryPart)
-
-            local Attachment1 = Instance.new("Attachment", local_player.Character.PrimaryPart)
-
-            Attachment0.Position = Vector3.new(0, -2.411, 0)
-
-            Attachment1.Position = Vector3.new(0, 2.504, 0)
-
-            trail.Parent = local_player.Character.PrimaryPart
-
-            trail.Attachment0 = Attachment0
-
-            trail.Attachment1 = Attachment1
-
-        else
-
-            
-
-            if local_player.Character.PrimaryPart:FindFirstChild('nurysium_fx') then
-
-                local_player.Character.PrimaryPart['nurysium_fx']:Destroy()
-
-            end
-
-        end
-
-    end)
-
-end)
-
-task.defer(function()
+    task.defer(function()
 
     while task.wait(1) do
 
